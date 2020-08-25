@@ -1,0 +1,135 @@
+---
+title: "Exploratory Data Analysis of Game of Thrones Battles using R markdown"
+author: "Jimmy Alele"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    css: styles.css
+    toc: true
+    toc_float: true
+---
+
+### Introduction
+![](got.jpg)
+
+I accidentally dug up a treasure!
+
+While browsing [Kaggle](https://www.kaggle.com/mylesoneill/game-of-thrones) datasets, I came across a dataset that summarises statistics of Game of Thrones battles. I am a huge Game of Thrones fan and I could not pass up the opportunity to do some exploratory data analysis on such a cool dataset. You can learn more about Game of Thrones [here](https://www.hbo.com/game-of-thrones).
+
+I used R markdown to explore the data and the actual code is included [here]().
+
+A list of some of the things you will learn by looking at the [code]():
+
+* How to structure your R markdown report header
+* Include headings in your R markdown reports
+* Include lists in your R markdown reports
+* Include inline code in your R markdown reports
+* Include images in your R markdown reports
+* Include links in your R markdown reports
+* Creating tables and plots in R
+* Basic data analysis in R
+
+### Here is the Game of Thrones trailer
+<iframe src="https://www.hbo.com/embed/game-of-thrones/videos/series-trailer" width="640" height="360" style="overflow:hidden" scrolling="no" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true" seamless="seamless" frameborder="0" type="text/html"></iframe><div><a title="Series Trailer" href="https://www.hbo.com/video/game-of-thrones/videos/series-trailer">Series Trailer</a></div>
+
+```{r include=FALSE}
+# Loading the data into R and importing useful libraries
+library("data.table")
+library("ggplot2")
+library("knitr")
+library("readxl")
+library("kableExtra")
+library("dplyr")
+library("janitor")
+library("tidyr")
+library("formattable")
+
+# import data files and save as battles
+battles <- data.table(read_excel("battles.xlsx"))
+
+# table showing number of times each king attacked other kings
+number_attack <- battles[, .(Attacks=.N), by=.(attacker_king)][order(Attacks)]
+
+# table showing number of times each king had to defend an attack
+number_defend <- battles[, .(Defends=.N), by=.(defender_king)][order(Defends)]
+```
+
+### Let's take a quick look at the data
+
+```{r echo=FALSE, message=FALSE}
+kable(battles[,-25], "html") %>% kable_styling(full_width=T,latex_options = "striped") %>% scroll_box( height = "500px")
+```
+We can display all the rows of the data because it is a small dataset.
+
+`note` column has not been displayed. It is mostly blank and is not relevant to this analysis.
+
+The total number of battles fought was **`r dim(battles)[1]`**.
+
+### How many times did each king attack?
+
+```{r, echo=FALSE, warning=FALSE, fig.width=10}
+
+Attacks <- ggplot(aes(x = factor(attacker_king)), data = battles[attacker_king != ""], fill=factor(attacker_king)) +
+    geom_bar(aes(fill=attacker_king), width=1, colour="black") +
+    ggtitle("Number of Attacks per King") +
+    xlab("Attacker Kings") + ylab("No of Battles")
+print(Attacks)
+```
+**2** battles have been excluded due to blank `attacker_king` fields.
+
+With **`r number_attack[.N,2]`** attacks, **`r number_attack[.N,1]`** was the most aggressive king.
+
+
+### How many times did each king defend an attack?
+
+
+```{r, echo=FALSE, warning=FALSE, fig.width=10}
+
+Attacked <- ggplot(aes(x = factor(defender_king)), data = battles[defender_king != ""], fill=factor(defender_king)) +
+    geom_bar(aes(fill=defender_king), width=1, colour="black") +
+    ggtitle("No of times attacked") +
+    xlab("defender Kings") + ylab("No of Battles") +
+  theme(axis.text.x=element_text(angle =45, vjust = 0.5))
+print(Attacked)
+```
+**2** battles have been excluded due to blank `defender_king` fields.
+
+Having been attacked **`r number_defend[.N,2]`** times, **`r number_defend[.N,1]`** had to fend off the most number of attacks.
+
+
+### In which region were most battles fought?
+
+```{r, echo=FALSE, warning=FALSE, fig.width=10}
+ggplot(aes(x = region), data = battles, fill=region) + geom_bar(aes(fill=region), width=1, colour="black")
+```
+
+Most battles were fought in **`r battles[,.(count=.N), by=region][order(count)][.N,1]`** while the least number of battes were fought **`r battles[,.(count=.N), by=region][order(count)][1,1]`**.
+
+Take a look at a map of Westeros in the next section below.
+
+### Here are the regions of Westeros
+![](regions.jpg)
+
+
+### Battle_type and battle outcome
+
+```{r echo=FALSE, message=FALSE}
+
+outcome <- battles[attacker_outcome != "", .(counts=.N), by=.(battle_type,attacker_outcome)] %>% group_by(battle_type, attacker_outcome) %>% summarise(counts) %>% spread(attacker_outcome,counts, fill=0) %>% adorn_totals(where = c("col","row")) %>% mutate("% wins" = percent(win/Total, digits=0) )
+
+kable(outcome, booktabs = T) %>% kable_styling(full_width=T,latex_options = "striped")
+
+```
+
+**1** battle has been excluded due to a blank `attacker_outcome` field.
+
+The most popular type of battle was **pitched battle**.
+
+**Ambush** was very popular and had a **100%** success rate.
+
+### Was it better to attack or to defend?
+
+In the table of outcomes above, it is clear that attacking was a much more effective strategy with **86%** success rate.
+
+
+

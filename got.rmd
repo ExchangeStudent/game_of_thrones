@@ -16,9 +16,9 @@ I accidentally dug up a treasure!
 
 While browsing [Kaggle](https://www.kaggle.com/mylesoneill/game-of-thrones) datasets, I came across a dataset that summarises statistics of Game of Thrones battles. I am a huge Game of Thrones fan and I could not pass up the opportunity to do some exploratory data analysis on such a cool dataset. You can learn more about Game of Thrones [here](https://www.hbo.com/game-of-thrones).
 
-I used R markdown to explore the data and the actual code is included [here]().
+I used R markdown to explore the data and the actual code is included [here](https://github.com/ExchangeStudent/game_of_thrones).
 
-A list of some of the things you will learn by looking at the [code]():
+A list of some of the things you will learn by looking at the [code](https://github.com/ExchangeStudent/game_of_thrones):
 
 * How to structure your R markdown report header
 * Include headings in your R markdown reports
